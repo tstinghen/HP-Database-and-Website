@@ -1,0 +1,103 @@
+
+INSERT INTO house (house_id, house_name, founder, mascot, ghost)
+VALUES (1, "Griffindor", "Godric Griffindor", "Lion", "Nearly Headless Nick");
+
+INSERT INTO house (house_id, house_name, founder, mascot, ghost)
+VALUES (2, "Slytherin", "Salazar Slytherin", "Snake", "Bloody Baron"); 
+
+INSERT INTO house (house_id, house_name, founder, mascot, ghost)
+VALUES (3, "Ravenclaw", "Rowena Ravenclaw", "Raven", "Grey Lady"); 
+
+INSERT INTO house (house_id, house_name, founder, mascot, ghost)
+VALUES (4, "Hufflepuff", "Helga Hufflepuff", "Badger", "Fat Friar"); 
+
+
+--generic query for adding a group 
+INSERT INTO organization (org_name, purpose)
+VALUES (['$new_name'], ['$desc'])
+
+--generic query for adding a new role 
+INSERT INTO role (title)
+VALUES (['$new_title'])
+
+--generic query for adding a character
+INSERT INTO hp_character (f_name, l_name, blood_stat, house_id)
+VALUES ([@f_name], [@l_name], [@blood_stat], [@house_id]); 
+
+--generic query for adding a wand associated with a character
+INSERT INTO wand (char_id, wood, core, length)
+VALUES((SELECT char_id FROM hp_character 
+WHERE f_name = [@f_name] AND l_name = [@l_name]), 
+[@wood], [@core], [@length]);
+
+--generic query for deleting a wand
+DELETE FROM wand
+ WHERE char_id = (SELECT char_id FROM hp_character WHERE f_name = ['$fname'] AND l_name = ['$lname']
+
+--make sure than organization/roles are added to appropriate tables
+--generic query for associating characters, organizations and roles
+INSERT INTO char_org_role(char_id, org_id, role_id)
+VALUES((SELECT char_id FROM hp_character 
+WHERE f_name = [@f_name] AND l_name = [@l_name]), 
+(SELECT org_id FROM organization
+WHERE org_name = [@org_name]), 
+(SELECT role_id FROM role 
+WHERE title = [@role_title])); 
+
+
+
+--shows family information 
+
+
+SELECT C.f_name, C.l_name, H.house_name, C.blood_stat,
+ W.wood AS wand_wood, W.core AS wand_core, W.length AS wand_length 
+ FROM hp_character C 
+ INNER JOIN house H ON H.house_id = C.house_id
+ INNER JOIN wand W ON W.char_id = C.char_id 
+ WHERE C.l_name = [@lastname]; 
+ 
+ --shows all personal information
+
+
+SELECT C.f_name, C.l_name, H.house_name, C.blood_stat,
+ W.wood AS wand_wood, W.core AS wand_core, W.length AS wand_length,
+R.title, O.org_name, O.purpose
+ FROM hp_character C 
+ INNER JOIN house H ON H.house_id = C.house_id
+ INNER JOIN wand W ON W.char_id = C.char_id 
+ INNER JOIN char_org_role COR ON COR.char_id = C.char_id
+INNER JOIN role R ON R.role_id = COR.role_id 
+INNER JOIN organization O ON O.org_id = COR.org_id 
+ WHERE C.l_name = [@lastname] 
+ AND C.f_name = [@firstname]; 
+ 
+ --shows membership information for groups 
+
+SELECT C.f_name, C.l_name, R.title, H.house_name
+FROM hp_character C
+INNER JOIN char_org_role COR ON COR.char_id = C.char_id
+INNER JOIN role R ON R.role_id = COR.role_id 
+INNER JOIN organization O ON O.org_id = COR.org_id 
+INNER JOIN house H on H.house_id = C.house_id
+WHERE O.org_name = [@this_group]; 
+
+--shows membership information for members of one house in a group 
+
+SELECT f_name, l_name, title, house_name
+FROM hp_character 
+INNER JOIN char_org_role ON char_org_role.char_id = hp_character.char_id
+INNER JOIN role  ON role.role_id = char_org_role.role_id 
+INNER JOIN organization  ON organization.org_id = char_org_role.org_id 
+INNER JOIN house on house.house_id = hp_character.house_id
+WHERE org_name = ['$org'] AND house_name = ['$house'] ORDER BY title;
+
+--shows membership information for houses 
+
+SELECT f_name, l_name FROM hp_character 
+INNER JOIN house ON house.house_id = hp_character.house_id
+WHERE house_name = ['$house']
+
+
+
+
+
