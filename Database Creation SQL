@@ -1,0 +1,73 @@
+
+--creates table for the four houses 
+
+CREATE TABLE house(
+house_id SMALLINT NOT NULL, 
+house_name VARCHAR(255) NOT NULL, 
+founder VARCHAR(255) NOT NULL, 
+mascot VARCHAR(255) NOT NULL,
+ghost VARCHAR(255) NOT NULL,
+PRIMARY KEY (house_id)
+)ENGINE=InnoDB; 
+
+--creates the hp_character table, requiring first and last name, 
+--and blood status. House id's are not required, but 
+--if given, are foreign keys to the house table.
+
+CREATE TABLE hp_character(
+char_id SMALLINT AUTO_INCREMENT,
+f_name VARCHAR(255) NOT NULL, 
+l_name VARCHAR(255) NOT NULL, 
+blood_stat VARCHAR(255) NOT NULL, 
+house_id SMALLINT,
+PRIMARY KEY (char_id),  
+UNIQUE KEY (f_name, l_name), 
+FOREIGN KEY (house_id) REFERENCES house(house_id)
+)ENGINE=InnoDB;
+
+--creates the wand table 
+
+CREATE TABLE wand(
+wand_id SMALLINT NOT NULL AUTO_INCREMENT, 
+char_id SMALLINT NOT NULL,
+wood VARCHAR(255) NOT NULL, 
+core VARCHAR(255) NOT NULL, 
+length SMALLINT,
+PRIMARY KEY (wand_id),
+FOREIGN KEY (char_id) REFERENCES hp_character(char_id)
+)ENGINE=InnoDB; 
+
+
+--creates a table for various organizations. Org's roles are 
+--stored in the roles table, and member names are stored 
+--in the hp_character table. The three are linked through  
+--the char_org_role table 
+
+CREATE TABLE organization(
+org_id SMALLINT NOT NULL AUTO_INCREMENT, 
+org_name VARCHAR(255) NOT NULL, 
+purpose VARCHAR(255) NOT NULL, 
+UNIQUE KEY (org_name),
+PRIMARY KEY (org_id)
+)ENGINE=InnoDB; 
+
+--creates a table for roles in the organizations 
+--each hp_character may have more than one role in a 
+--single organization 
+
+CREATE TABLE role( 
+role_id SMALLINT NOT NULL AUTO_INCREMENT, 
+title VARCHAR(255) NOT NULL,
+UNIQUE KEY (title),  
+PRIMARY KEY (role_id) 
+)ENGINE=InnoDB; 
+
+CREATE TABLE char_org_role( 
+char_id SMALLINT, 
+org_id SMALLINT, 
+role_id SMALLINT, 
+PRIMARY KEY (char_id, org_id, role_id),
+FOREIGN KEY (char_id) REFERENCES hp_character(char_id), 
+FOREIGN KEY (org_id) REFERENCES organization(org_id), 
+FOREIGN KEY (role_id) REFERENCES role(role_id)
+)ENGINE=InnoDB; 
